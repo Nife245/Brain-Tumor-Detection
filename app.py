@@ -13,7 +13,14 @@ model = tf.keras.models.load_model("model/brain_tumor_model.h5")
 print("Model loaded successfully.")
 
 # Define class names (adjust based on your model)
-class_names = np.load("static/Tumor_classes.npy", allow_pickle=True).tolist()
+class_names = ['Glioma', 'Meningioma', 'No Tumor', 'Pituitary Tumor']
+
+class_explanations = {
+    "Glioma": "Gliomas are tumors that arise from glial cells in the brain or spine. They can be aggressive and may require surgery, radiation, or chemotherapy.",
+    "Meningioma": "Meningiomas are typically benign tumors that form on membranes covering the brain and spinal cord. They grow slowly and are often treatable with surgery.",
+    "No Tumor": "No tumor was detected in the image. This suggests that the MRI scan appears normal based on the model's analysis.",
+    "Pituitary Tumor": "Pituitary tumors form in the pituitary gland at the base of the brain. Most are noncancerous and may affect hormone production."
+}
 
 print("Class names loaded successfully.")
 
@@ -32,7 +39,7 @@ async def home(request: Request):
 async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents)).resize((224, 224))  # adjust to your input size
-    image = np.array(image) / 255.0  # normalize
+    image = np.array(image)  # normalize
     if image.shape[-1] == 4:  # Remove alpha channel if present
         image = image[..., :3]
     image = np.expand_dims(image, axis=0) 
@@ -41,6 +48,5 @@ async def predict(file: UploadFile = File(...)):
     predicted_class = class_names[np.argmax(predictions[0])]
     confidence = float(np.max(predictions[0])) * 100
 
-    print(f"Predicted class: {predicted_class}, Confidence: {confidence}")
-
-    return {"prediction": predicted_class, "confidence": confidence}
+    return {"prediction": predicted_class, "confidence": confidence,
+            "explanation": class_explanations.get(predicted_class, "No explanation available.")}
