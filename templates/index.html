@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Brain Tumor Detection</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #e0ecff, #f7faff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      color: #2c3e50;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #555;
+      font-size: 15px;
+      margin-bottom: 25px;
+    }
+
+    .examples {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .examples img {
+      width: 180px;
+      height: 180px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 3px solid #e0e0e0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .examples img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .file-label {
+      display: inline-block;
+      background-color: #3498db;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    .file-label:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #preview {
+      margin: 15px auto 10px auto;
+      width: 250px;
+      height: auto;
+      border-radius: 12px;
+      border: 3px solid #ddd;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .predict-btn {
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .predict-btn:hover {
+      background-color: #27ae60;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    .predict-btn:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid white;
+      border-right: 3px solid #2ecc71;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #result {
+      margin-top: 25px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #34495e;
+    }
+
+    @media (max-width: 600px) {
+      .examples img {
+        width: 120px;
+        height: 120px;
+      }
+
+      #preview {
+        width: 200px;
+      }
+
+      .file-label, .predict-btn {
+        width: 100%;
+        display: block;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Brain Tumor Classifier</h1>
+    <p>Upload an MRI image similar to examples shown below</p>
+
+    <div class="examples">
+      <img src="../static/images/brain_tumor1.jpg" alt="Example 1" />
+      <img src="../static/images/brain_tumor2.jpg" alt="Example 2" />
+      <img src="../static/images/brain_tumor3.jpg" alt="Example 3" />
+    </div>
+
+    <label class="file-label" for="fileUpload">Choose MRI Image</label>
+    <input type="file" id="fileUpload" accept="image/*" />
+
+    <img id="preview" src="#" alt="Preview" />
+
+    <br />
+    <button id="predictBtn" class="predict-btn">Predict</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const fileUpload = document.getElementById('fileUpload');
+    const preview = document.getElementById('preview');
+    const predictBtn = document.getElementById('predictBtn');
+    const resultDiv = document.getElementById('result');
+
+    fileUpload.addEventListener('change', () => {
+      const file = fileUpload.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    predictBtn.addEventListener('click', async () => {
+      const file = fileUpload.files[0];
+      if (!file) {
+        alert("Please select an image file first.");
+        return;
+      }
+
+      predictBtn.disabled = true;
+      predictBtn.innerHTML = 'Predicting <span class="spinner"></span>';
+      resultDiv.innerHTML = '';
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+        resultDiv.innerHTML = `
+          <p>Prediction: <span style="color:#27ae60">${result.prediction}</span></p>
+          <p>Confidence: ${result.confidence.toFixed(2)}%</p>`;
+      } catch (error) {
+        resultDiv.innerHTML = "<p style='color:red;'>An error occurred. Try again.</p>";
+      }
+
+      predictBtn.disabled = false;
+      predictBtn.innerHTML = 'Predict';
+    });
+  </script>
+</body>
+</html>

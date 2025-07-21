@@ -1,0 +1,10 @@
+uvicorn
+python-multipart
+fastapi==0.116.1
+setuptools>=42
+wheel
+numpy==1.26.0
+jinja2
+Pillow==11.3.0
+starlette==0.47.2
+tensorflow==2.19.0
