@@ -39,3 +39,6 @@ or
 - Navigate to app (cd app)
 - enter uvicorn app:app --reload on the terminal
 - Navigate to the link provided
+   ![Homepage](static/images/landingpage.png)
+- choose an Image file and click the predict button
+   ![Homepage](static/images/prediction.png)
