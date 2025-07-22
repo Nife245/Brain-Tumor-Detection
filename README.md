@@ -33,7 +33,7 @@ These are examples of how your input images should look:
 ## 🌐 Live Demo
 
 Visit the live web app here:  
-👉 [https://brain-tumor-classification-app.onrender.com](https://brain-tumor-classification-app.onrender.com)
+👉 [https://brain-tumor-classification-app.onrender.com](https://brain-tumor-detection-rr4u.onrender.com/)
 or
 - clone the repository (git clone https://github.com/Nife245/Brain-Tumor-Detection.git)
 - Navigate to app (cd app)
